@@ -7,11 +7,6 @@ PRODUCT_MODEL := Lenovo Tab E7
 PRODUCT_MANUFACTURER := lenovo
 
 TARGET_DEVICE := tb7104
-root@localhost:~/OrangeFox_Build#
-root@localhost:~/OrangeFox_Build#
-root@localhost:~/OrangeFox_Build#
-root@localhost:~/OrangeFox_Build#
-root@localhost:~/OrangeFox_Build# cat ~/OrangeFox_Build/device/lenovo/tb7104/BoardConfig.mk
 DEVICE_PATH := device/lenovo/tb7104
 
 TARGET_ARCH := arm

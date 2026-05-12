@@ -1,1 +1,2 @@
-cat ~/OrangeFox_Build/device/lenovo/tb7104/AndroidProducts.mk
+PRODUCT_MAKEFILES := \
+    $(LOCAL_DIR)/omni_tb7104.mk

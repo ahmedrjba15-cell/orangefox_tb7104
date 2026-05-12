@@ -6,4 +6,4 @@ PRODUCT_BRAND := Lenovo
 PRODUCT_MODEL := Lenovo Tab E7
 PRODUCT_MANUFACTURER := lenovo
 
-TARGET_DEVICE := tb7104
+$(call inherit-product, vendor/omni/config/common.mk)

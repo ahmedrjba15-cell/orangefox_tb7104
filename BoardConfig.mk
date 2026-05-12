@@ -1,0 +1,40 @@
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+
+PRODUCT_DEVICE := tb7104
+PRODUCT_NAME := omni_tb7104
+PRODUCT_BRAND := Lenovo
+PRODUCT_MODEL := Lenovo Tab E7
+PRODUCT_MANUFACTURER := lenovo
+
+TARGET_DEVICE := tb7104
+root@localhost:~/OrangeFox_Build#
+root@localhost:~/OrangeFox_Build#
+root@localhost:~/OrangeFox_Build#
+root@localhost:~/OrangeFox_Build#
+root@localhost:~/OrangeFox_Build# cat ~/OrangeFox_Build/device/lenovo/tb7104/BoardConfig.mk
+DEVICE_PATH := device/lenovo/tb7104
+
+TARGET_ARCH := arm
+TARGET_ARCH_VARIANT := armv7-a-neon
+TARGET_CPU_ABI := armeabi-v7a
+TARGET_CPU_ABI2 := armeabi
+TARGET_CPU_VARIANT := generic
+TARGET_CPU_SMP := true
+
+TARGET_BOARD_PLATFORM := mt8167
+TARGET_BOOTLOADER_BOARD_NAME := tb7104
+
+TARGET_NO_KERNEL := false
+BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
+BOARD_KERNEL_BASE := 0x40000000
+BOARD_KERNEL_PAGESIZE := 2048
+
+BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
+BOARD_HAS_NO_SELECT_BUTTON := true
+
+TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
+
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+ALLOW_MISSING_DEPENDENCIES := true

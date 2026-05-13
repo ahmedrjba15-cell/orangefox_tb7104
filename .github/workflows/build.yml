@@ -5,50 +5,40 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Install Build Tools
-        run: |
-          sudo apt update
-          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib gnupg gperf libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32z1-dev libtinfo6 libncursesw6 -y
-          # تثبيت أداة repo بأحدث طريقة
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
-          sudo ln -sf ~/bin/repo /usr/bin/repo
+    - name: Setup OrangeFox Source
+      run: |
+        mkdir ~/orangefox && cd ~/orangefox
+        git config --global user.email "fox@builder.com"
+        git config --global user.name "Builder"
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b tomblow-9.0
+        repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
-      - name: Setup OrangeFox Source
-        run: |
-          mkdir ~/orangefox && cd ~/orangefox
-          git config --global user.email "fox@builder.com"
-          git config --global user.name "Builder"
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
-          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
+    - name: Extract Kernel & Prep Device Tree
+      run: |
+        mkdir -p ~/orangefox/device/lenovo/tb7104
+        cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
+        cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
+        cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
+        cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/
 
-      - name: Extract Kernel & Prep Device Tree
-        run: |
-          mkdir -p ~/orangefox/device/lenovo/tb7104
-          cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
-          # تحديث رابط أداة magiskboot لنسخة شغالة
-          wget https://github.com/tiann/KernelSU/releases/download/v0.9.5/magiskboot -O magiskboot || echo "Magiskboot not found, skipping..."
-          chmod +x magiskboot || true
+    - name: Build Recovery Image
+      run: |
+        cd ~/orangefox
+        source build/envsetup.sh
+        lunch omni_tb7104-eng
+        mka recoveryimage -j$(nproc)
+
+    - name: Upload Finished Recovery
+      uses: actions/upload-artifact@v4
+      with:
+        name: OrangeFox-Recovery-TB7104
+        path: |
+          /home/runner/orangefox/out/target/product/tb7104/*.zip
+          /home/runner/orangefox/out/target/product/tb7104/*.img
           
-
-      - name: Build Recovery Image
-        run: |
-          cd ~/orangefox
-          source build/envsetup.sh
-          lunch omni_tb7104-eng
-          mka recoveryimage -j$(nproc)
-
-      - name: Upload Finished Recovery
-        uses: actions/upload-artifact@v4
-        with:
-          name: OrangeFox-Lenovo-TB7104
-          path: /home/runner/orangefox/out/target/product/tb7104/recovery.img

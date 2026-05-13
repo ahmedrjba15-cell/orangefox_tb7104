@@ -29,15 +29,12 @@ jobs:
           # استخدام الـ repo اللي ثبتناه
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
-
       - name: Extract Kernel & Prep Device Tree
         run: |
           mkdir -p ~/orangefox/device/lenovo/tb7104
-          cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
-          # نقل ملف الـ boot.img لضمان وجود الكيرنل لو احتجناه
-          cp $GITHUB_WORKSPACE/kernel ~/orangefox/device/lenovo/tb7104/ || echo "boot.img not found"
+          cp -r $GITHUB_WORKSPACE/* ~/orangefox/device/lenovo/tb7104/
+          # تأكيد نسخ الملف بالاسم اللي السيستم عايزه
+          cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/boot.img
 
       - name: Build Recovery Image
         run: |
@@ -51,7 +48,7 @@ jobs:
         with:
           name: OrangeFox-Recovery-TB7104
           path: |
-            /home/runner/orangefox/out/target/product/tb7104/*.img
-            /home/runner/orangefox/out/target/product/tb7104/*.zip
-            /home/runner/orangefox/out/target/product/tb7104/OrangeFox*.zip
-          if-no-files-found: error # دي هتخلي الـ Build يفشل لو ملقاش ملفات بدل ما يديك صح كدابة          
+             /home/runner/orangefox/out/target/product/tb7104/*.img
+             /home/runner/orangefox/out/target/product/tb7104/*.zip
+          if-no-files-found: error
+        

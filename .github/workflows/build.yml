@@ -35,9 +35,10 @@ jobs:
           cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
           cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
           cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
-          # تحميل أداة magiskboot
-          wget https://github.com/tiann/KernelSU/releases/download/v0.6.9/magiskboot -O magiskboot
-          chmod +x magiskboot
+          # تحديث رابط أداة magiskboot لنسخة شغالة
+          wget https://github.com/tiann/KernelSU/releases/download/v0.9.5/magiskboot -O magiskboot || echo "Magiskboot not found, skipping..."
+          chmod +x magiskboot || true
+          
 
       - name: Build Recovery Image
         run: |

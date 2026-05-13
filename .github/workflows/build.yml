@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # رجعناها لأحدث نسخة عشان متوقفش
 
     steps:
       - name: Checkout
@@ -14,8 +14,13 @@ jobs:
       - name: Install Build Tools
         run: |
           sudo apt update
-          # ضيف libtinfo5 في السطر اللي جاي
-          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib gnupg gperf libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32z1-dev libtinfo5 libncurses5 -y        
+          # إضافة مستودعات المكتبات القديمة يدويًا عشان ubuntu-latest تلاقيها
+          sudo apt install software-properties-common -y
+          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal main universe" -y
+          sudo apt update
+          # تثبيت المكتبات المطلوبة (تم استبدال 5 بـ 6 وتثبيت الـ dev لضمان التوافق)
+          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib gnupg gperf libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32z1-dev libtinfo5 libncurses5 libncurses-dev -y
+          
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
@@ -31,27 +36,33 @@ jobs:
 
       - name: Extract Kernel & Prep Device Tree
         run: |
-          mkdir -p ~/orangefox/device/lenovo/tb7104
-          cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
-          cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
-          # الخدعة اللي حلت مشكلة الـ Ninja
-          cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/boot.img || cp $GITHUB_WORKSPACE/kernel ~/orangefox/device/lenovo/tb7104/boot.img
+          DEVICE_PATH=~/orangefox/device/lenovo/tb7104
+          mkdir -p $DEVICE_PATH
+          
+          # نسخ ملفات الشجرة من المستودع
+          cp $GITHUB_WORKSPACE/*.mk $DEVICE_PATH/
+          cp $GITHUB_WORKSPACE/*.sh $DEVICE_PATH/
+          cp $GITHUB_WORKSPACE/*.fstab $DEVICE_PATH/
+          
+          # التأكد من وجود الكيرنل "العنيد" (Raw)
+          if [ -f $GITHUB_WORKSPACE/kernel ]; then
+            cp $GITHUB_WORKSPACE/kernel $DEVICE_PATH/kernel
+          elif [ -f $GITHUB_WORKSPACE/recovery_kernel_raw ]; then
+            cp $GITHUB_WORKSPACE/recovery_kernel_raw $DEVICE_PATH/kernel
+          fi
 
       - name: Build Recovery Image
         run: |
           cd ~/orangefox
+          export ALLOW_MISSING_DEPENDENCIES=true
+          # تعويض نقص المكتبات في البيئات الجديدة
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/
           source build/envsetup.sh
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
-          # تنفيذ فكرتك في تجميع النتائج
-          mkdir -p $GITHUB_WORKSPACE/output
-          find out/target/product/tb7104/ -maxdepth 1 -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
-          find out/target/product/tb7104/ -maxdepth 1 -name "OrangeFox*.zip" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 
       - name: Upload Finished Recovery
         uses: actions/upload-artifact@v4
         with:
-          name: OrangeFox-Recovery-TB7104
-          path: output/
-          if-no-files-found: error          
+          name: OrangeFox-Lenovo-TB7104
+          path: ~/orangefox/out/target/product/tb7104/recovery.img          

@@ -37,7 +37,7 @@ jobs:
           cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
           cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
           # نقل ملف الـ boot.img لضمان وجود الكيرنل لو احتجناه
-          cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/ || echo "boot.img not found"
+          cp $GITHUB_WORKSPACE/kernel ~/orangefox/device/lenovo/tb7104/ || echo "boot.img not found"
 
       - name: Build Recovery Image
         run: |

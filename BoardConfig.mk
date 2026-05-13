@@ -17,8 +17,13 @@ TARGET_CPU_SMP := true
 TARGET_BOARD_PLATFORM := mt8167
 TARGET_BOOTLOADER_BOARD_NAME := tb7104
 
+# --- تعديل الكيرنل الجاهز (الزتونة هنا) ---
 TARGET_NO_KERNEL := false
+# بنقول للسيستم إن الكيرنل موجود جاهز باسم boot.img في مجلد الجهاز
 BOARD_PREBUILT_KERNEL := $(DEVICE_PATH)/boot.img
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/boot.img
+# ---------------------------------------
+
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
@@ -32,6 +37,7 @@ TARGET_USERIMAGES_USE_F2FS := true
 
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
 ALLOW_MISSING_DEPENDENCIES := true
+
 # Recovery Theme
 TW_THEME := portrait_hdpi
 DEVICE_SCREEN_WIDTH := 600

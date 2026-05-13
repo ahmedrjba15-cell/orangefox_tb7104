@@ -15,20 +15,18 @@ jobs:
         run: |
           sudo apt update
           sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib gnupg gperf libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32z1-dev libtinfo6 libncursesw6 -y
-          # تثبيت repo بشكل منفصل ومنظم
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
-          
+
       - name: Setup OrangeFox Source
         run: |
           mkdir ~/orangefox && cd ~/orangefox
           git config --global user.email "fox@builder.com"
           git config --global user.name "Builder"
-          # استخدام twrp-9.0 لبناء OrangeFox مستقر
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
-          [span_3](start_span)repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags[span_3](end_span)
+          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
       - name: Extract Kernel & Prep Device Tree
         run: |
@@ -36,19 +34,17 @@ jobs:
           cp $GITHUB_WORKSPACE/*.mk ~/orangefox/device/lenovo/tb7104/
           cp $GITHUB_WORKSPACE/*.sh ~/orangefox/device/lenovo/tb7104/
           cp $GITHUB_WORKSPACE/*.fstab ~/orangefox/device/lenovo/tb7104/
-          # خدعة الكيرنل: نسخ ملف الـ kernel وتسميته boot.img لإرضاء نظام البناء
-          [span_4](start_span)cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/boot.img || cp $GITHUB_WORKSPACE/kernel ~/orangefox/device/lenovo/tb7104/boot.img[span_4](end_span)
-          
+          # الخدعة اللي حلت مشكلة الـ Ninja
+          cp $GITHUB_WORKSPACE/boot.img ~/orangefox/device/lenovo/tb7104/boot.img || cp $GITHUB_WORKSPACE/kernel ~/orangefox/device/lenovo/tb7104/boot.img
+
       - name: Build Recovery Image
         run: |
           cd ~/orangefox
           source build/envsetup.sh
           lunch omni_tb7104-eng
-          [span_5](start_span)mka recoveryimage -j$(nproc)[span_5](end_span)
-          
-          # --- تنفيذ فكرتك: تجميع النتائج في مجلد مخصص ---
+          mka recoveryimage -j$(nproc)
+          # تنفيذ فكرتك في تجميع النتائج
           mkdir -p $GITHUB_WORKSPACE/output
-          # البحث عن الملفات في مجلد out ونقلها للمجلد الجديد
           find out/target/product/tb7104/ -maxdepth 1 -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
           find out/target/product/tb7104/ -maxdepth 1 -name "OrangeFox*.zip" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 

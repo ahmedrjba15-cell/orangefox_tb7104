@@ -1,5 +1,3 @@
-$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
-
 PRODUCT_DEVICE := tb7104
 PRODUCT_NAME := omni_tb7104
 PRODUCT_BRAND := Lenovo

@@ -50,4 +50,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: OrangeFox-Recovery-TB7104
-          path: /home/runner/orangefox/out/target/product/tb7104/*.zip        
+          path: |
+            /home/runner/orangefox/out/target/product/tb7104/*.img
+            /home/runner/orangefox/out/target/product/tb7104/*.zip
+            /home/runner/orangefox/out/target/product/tb7104/OrangeFox*.zip
+          if-no-files-found: error # دي هتخلي الـ Build يفشل لو ملقاش ملفات بدل ما يديك صح كدابة          

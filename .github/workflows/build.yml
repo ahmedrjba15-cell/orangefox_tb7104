@@ -32,13 +32,15 @@ jobs:
           git config --global user.email "fox@builder.com"
           git config --global user.name "Builder"
           
-          # مسح أي آثار قديمة لضمان نظافة السورس
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1 --quiet
+          # حذف أي مانيفرست قديم بيسبب تعارض
+          rm -rf .repo/manifests .repo/manifests.git
           
-          # إجبار الـ Sync على التنظيف (Force Sync) وتجاهل الأخطاء البسيطة
-          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags --prune
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           
+          # الإجبار على المزامنة وحذف أي تغييرات محلية غصب عن أي حد
+          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
           
+         
       - name: Extract Kernel & Prep Device Tree
         run: |
           DEVICE_PATH=~/orangefox/device/lenovo/tb7104

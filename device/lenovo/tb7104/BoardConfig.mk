@@ -17,12 +17,14 @@ TARGET_CPU_SMP := true
 TARGET_BOARD_PLATFORM := mt8167
 TARGET_BOOTLOADER_BOARD_NAME := tb7104
 
-# --- تعديل الكيرنل الجاهز (الزتونة هنا) ---
-TARGET_NO_KERNEL := false
-# بنقول للسيستم إن الكيرنل موجود جاهز باسم boot.img في مجلد الجهاز
-BOARD_PREBUILT_KERNEL := $(DEVICE_PATH)/boot.img
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/boot.img
-# ---------------------------------------
+DEVICE_PATH := device/lenovo/tb7104
+
+# الكيرنل
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/recovery_kernel_raw
+
+# البوت
+BOARD_PREBUILT_BOOTIMAGE := $(DEVICE_PATH)/boot.img
+------------------
 
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
 BOARD_KERNEL_BASE := 0x40000000

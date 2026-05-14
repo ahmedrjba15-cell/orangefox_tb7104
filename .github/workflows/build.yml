@@ -12,33 +12,39 @@ jobs:
 
       - name: Install Build Tools
         run: |
-          mkdir -p /home/runner/bin && cp bin/repo /home/runner/bin/repo && chmod a+x /home/runner/bin/repo          
+          mkdir -p /home/runner/bin && cp bin/repo /home/runner/bin/repo || true
           sudo apt update
-          sudo apt install python2 python-is-python2 python3 python3-pip -y
+          sudo apt install python3 python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
-          sudo ln -sf /usr/bin/python2 /usr/bin/python         
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
-          
+
+      - name: Force Install Python 2
+        run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt update
+          sudo apt install python2.7 -y || true
+          sudo ln -sf /usr/bin/python2.7 /usr/bin/python || true
+
       - name: Setup OrangeFox Source
         run: |
           rm -rf $HOME/orangefox
           mkdir -p $HOME/orangefox && cd $HOME/orangefox
           git config --global user.email "fox@builder.com"
           git config --global user.name "Builder"
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_orangefox.git -b fox_9.0 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
       - name: Extract Kernel & Prep Device Tree
         run: |
           DEVICE_PATH=$HOME/orangefox/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
-          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.mk $DEVICE_PATH/
-          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.sh $DEVICE_PATH/
-          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.fstab $DEVICE_PATH/
-          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "*kernel*" -exec cp {} $DEVICE_PATH/ \;
-          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "boot.img" -exec cp {} $DEVICE_PATH/ \;
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.mk $DEVICE_PATH/ || true
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.sh $DEVICE_PATH/ || true
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.fstab $DEVICE_PATH/ || true
+          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "*kernel*" -exec cp {} $DEVICE_PATH/ \; || true
+          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "boot.img" -exec cp {} $DEVICE_PATH/ \; || true
 
       - name: Build Recovery Image
         run: |
@@ -46,4 +52,5 @@ jobs:
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
           lunch omni_tb7104-eng
-          mka recoveryimage -j$(nproc)          
+          mka recoveryimage -j$(nproc)
+          

@@ -20,6 +20,7 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
+          mkdir -p /home/runner/bin && cp bin/repo /home/runner/bin/repo && chmod a+x /home/runner/bin/repo
 
       - name: Setup OrangeFox Source
         run: |

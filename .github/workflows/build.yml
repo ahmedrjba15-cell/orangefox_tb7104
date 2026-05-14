@@ -28,20 +28,16 @@ jobs:
 
       - name: Setup OrangeFox Source
         run: |
-          # تنظيف جذري وأيضاً التأكد من ملكية المجلد
-          cd ~
-          rm -rf orangefox_new
-          mkdir orangefox_new && cd orangefox_new
+          # مسح أي عك قديم وبدء صفحة جديدة في مجلد العمل
+          rm -rf $HOME/orangefox
+          mkdir -p $HOME/orangefox && cd $HOME/orangefox
           
           git config --global user.email "fox@builder.com"
           git config --global user.name "Builder"
           
-          # تحميل المانيفرست في المجلد الجديد
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1 --quiet
-          
-          # المزامنة مع تجاهل أخطاء الـ Sync الفردية
-          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags || repo sync -c -j1 --force-sync
-          
+          # تحميل السورس
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
+          repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
       - name: Extract Kernel & Prep Device Tree
         run: |
@@ -59,16 +55,14 @@ jobs:
 
       - name: Build Recovery Image
         run: |
-          cd ~/orangefox
-          export ALLOW_MISSING_DEPENDENCIES=true
-          source build/envsetup.sh
-          # الأمر ده هو اللي كان بيضرب، دلوقتي هيلاقي الملف
-          lunch omni_tb7104-eng
-          mka recoveryimage -j$(nproc)
-
-      - name: Upload Finished Recovery
-        uses: actions/upload-artifact@v4
-        with:
-          name: OrangeFox-Lenovo-TB7104
-          path: /home/runner/orangefox/out/target/product/tb7104/recovery.img
-          
+          # الدخول للمجلد والتأكد من وجود الملفات قبل البدء
+          cd $HOME/orangefox
+          if [ -f build/envsetup.sh ]; then
+            export ALLOW_MISSING_DEPENDENCIES=true
+            source build/envsetup.sh
+            lunch omni_tb7104-eng
+            mka recoveryimage -j$(nproc)
+          else
+            echo "Error: Source files not found in $HOME/orangefox"
+            exit 1
+          fi

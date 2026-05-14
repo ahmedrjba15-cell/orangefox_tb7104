@@ -5,8 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # رجعناها لأحدث نسخة عشان متوقفش
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -14,13 +13,10 @@ jobs:
       - name: Install Build Tools
         run: |
           sudo apt update
-          # إضافة مستودعات المكتبات القديمة يدويًا عشان ubuntu-latest تلاقيها
           sudo apt install software-properties-common -y
-          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal main universe" -y
+          sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal main universe"
           sudo apt update
-          # تثبيت المكتبات المطلوبة (تم استبدال 5 بـ 6 وتثبيت الـ dev لضمان التوافق)
-          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib gnupg gperf libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev lib32z1-dev libtinfo5 libncurses5 libncurses-dev -y
-          
+          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib libxml2-utils lzop zip zlib1g-dev -y
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
@@ -28,41 +24,28 @@ jobs:
 
       - name: Setup OrangeFox Source
         run: |
-          # مسح أي عك قديم وبدء صفحة جديدة في مجلد العمل
           rm -rf $HOME/orangefox
           mkdir -p $HOME/orangefox && cd $HOME/orangefox
-          
           git config --global user.email "fox@builder.com"
           git config --global user.name "Builder"
-          
-          # تحميل السورس
-          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
       - name: Extract Kernel & Prep Device Tree
         run: |
-          # تحديد مسار الشجرة جوه السورس الجديد
-          DEVICE_PATH=~/orangefox/device/lenovo/tb7104
+          DEVICE_PATH=$HOME/orangefox/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
-          
-          # نسخ كل ملفات الشجرة من المستودع للمجلد الصح
-          cp $GITHUB_WORKSPACE/*.mk $DEVICE_PATH/
-          cp $GITHUB_WORKSPACE/*.sh $DEVICE_PATH/
-          cp $GITHUB_WORKSPACE/*.fstab $DEVICE_PATH/
-          
-          # التأكد من وجود الكيرنل (العنيد) في مكانه باسمه اللي الـ Compiler مستنيه
-          find $GITHUB_WORKSPACE -name "*kernel*" -exec cp {} $DEVICE_PATH/kernel \;
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.mk $DEVICE_PATH/
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.sh $DEVICE_PATH/
+          cp $GITHUB_WORKSPACE/device/lenovo/tb7104/*.fstab $DEVICE_PATH/
+          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "*kernel*" -exec cp {} $DEVICE_PATH/ \;
+          find $GITHUB_WORKSPACE/device/lenovo/tb7104 -name "boot.img" -exec cp {} $DEVICE_PATH/ \;
 
       - name: Build Recovery Image
         run: |
-          # الدخول للمجلد والتأكد من وجود الملفات قبل البدء
           cd $HOME/orangefox
-          if [ -f build/envsetup.sh ]; then
-            export ALLOW_MISSING_DEPENDENCIES=true
-            source build/envsetup.sh
-            lunch omni_tb7104-eng
-            mka recoveryimage -j$(nproc)
-          else
-            echo "Error: Source files not found in $HOME/orangefox"
-            exit 1
-          fi
+          export ALLOW_MISSING_DEPENDENCIES=true
+          source build/envsetup.sh
+          lunch omni_tb7104-eng
+          mka recoveryimage -j$(nproc)
+          

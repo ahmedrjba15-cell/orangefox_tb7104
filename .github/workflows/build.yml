@@ -16,8 +16,7 @@ jobs:
           sudo apt install software-properties-common -y
           sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal main universe"
           sudo apt update
-          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib libxml2-utils lzop zip zlib1g-dev -y
-          mkdir -p ~/bin
+          sudo apt install git aria2 python3-pip bc bison build-essential flex g++-multilib gcc-multilib libxml2-utils lzop zip zlib1g-dev libtinfo5 libncurses5 libtinfo6 libncurses6 -y         
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo

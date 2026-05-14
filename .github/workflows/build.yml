@@ -12,6 +12,7 @@ jobs:
 
       - name: Install Build Tools
         run: |
+          mkdir -p /home/runner/bin && cp bin/repo /home/runner/bin/repo && chmod a+x /home/runner/bin/repo          
           sudo apt update
           sudo apt install software-properties-common -y
           sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal main universe"
@@ -20,8 +21,7 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
-          mkdir -p /home/runner/bin && cp bin/repo /home/runner/bin/repo && chmod a+x /home/runner/bin/repo
-
+          
       - name: Setup OrangeFox Source
         run: |
           rm -rf $HOME/orangefox
@@ -47,5 +47,4 @@ jobs:
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
           lunch omni_tb7104-eng
-          mka recoveryimage -j$(nproc)
-          
+          mka recoveryimage -j$(nproc)          

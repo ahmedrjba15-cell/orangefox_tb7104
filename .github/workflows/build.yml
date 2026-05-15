@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 PATH-FIX
+name: TWRP Build TB7104 FINAL-V5
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
           sudo apt install python3 python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
-          # ربط المكتبات الضرورية
+          # ربط المكتبات
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
           
@@ -35,38 +35,35 @@ jobs:
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
-      - name: Extract Device Tree (From Your Specific Path)
+      - name: Sync Device Tree
         run: |
-          # هنا التعديل بناءً على صورتك الأخيرة
-          # بننشئ المسار جوه السورس
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
-          
-          # بننسخ الملفات من المسار اللي في صورتك للمسار الجديد
-          # ملاحظة: الملفات في مستودعك موجودة جوه device/lenovo/tb7104/
+          # نسخ ملفاتك من المسار اللي أنت نظمته
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
+
+      - name: Ultimate Python Compatibility Fix
+        run: |
+          cd $HOME/twrp
+          # 1. تحويل الـ print القديمة لشكل بايثون 3
+          find build/make/tools/ -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
+          # 2. حل مشكلة iteritems اللي ظهرت في الصورة الأخيرة
+          find build/make/tools/ -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
           
-          # بنطمن إن ملف omni_tb7104.mk موجود في مكانه
-          ls $DEVICE_PATH
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
 
       - name: Build Recovery Image
         run: |
           cd $HOME/twrp
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
-          
-          # حل مشكلة البايثون بالـ sed عشان نتفادى الـ SyntaxError
-          find build/make/tools/ -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
-          sudo ln -sf /usr/bin/python3 /usr/bin/python
-          
           source build/envsetup.sh
-          # دلوقتي الـ lunch هيلاقي الملفات إن شاء الله
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
 
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-Fixed
+          name: TWRP-TB7104-Build-65
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

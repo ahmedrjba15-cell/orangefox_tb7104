@@ -1,11 +1,12 @@
-name: TWRP Build TB7104 FINAL-ULTIMATE
+name: TWRP Build TB7104 JAMMY-PRO-FIX
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04 
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -13,18 +14,17 @@ jobs:
       - name: Install Fundamental Build Tools
         run: |
           sudo apt update
-          # تثبيت الأدوات الأساسية اللي السيرفر Noble بيقبلها دايماً
-          sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3 -y
+          # تثبيت بايثون 2 ومكتباته الأساسية
+          sudo apt install python2 python2-dev python-is-python2 -y || true
           
-          # تثبيت repo في مسار النظام العالمي
+          # تثبيت بقية الأدوات (لاحظ استخدام libncurses5 المناسبة لـ 22.04)
+          sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
+          
+          # توفير أداة repo عالمياً
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
-          
-          # حل مشكلة ncurses اللي بتظهر في البناء للأجهزة القديمة
-          sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
-          sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
 
       - name: Setup TWRP Source
         run: |
@@ -37,25 +37,17 @@ jobs:
 
       - name: Sync Device Tree
         run: |
-          # استخدام المسار المنظم بتاعك لضمان وصول السيرفر للملفات
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: GitHub-Standard Compatibility Patch
+      - name: Forced Python 2 Alias (The 100% Key)
         run: |
-          cd $HOME/twrp
-          # استهداف ملفات الأدوات (build/make/tools) لأنها هي اللي بتضرب دايماً
-          
-          # 1. تصليح أقواس الـ print (التي تظهر كخطأ Syntax)
-          find build/make/tools -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
-          
-          # 2. تصليح الـ iteritems الملعونة اللي وقفتنا عند 1555 ملف
-          find build/make/tools -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
-          
-          # 3. جعل بايثون 3 يمثل دور بايثون 2 بالكامل لتغطية كل السيناريوهات
-          sudo ln -sf /usr/bin/python3 /usr/bin/python
-          sudo ln -sf /usr/bin/python3 /usr/bin/python2
+          # هذه الخطوة هي اللي هتحل خطأ الصورة 131307
+          # بنجبر السيستم إن "python" و "python3" يشاوروا على نسخة 2.7 وقت البناء فقط
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
+          sudo ln -sf /usr/bin/python2 /usr/bin/python3
+          python --version
 
       - name: Build Recovery Image
         run: |
@@ -69,6 +61,6 @@ jobs:
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-ULTIMATE-SUCCESS
+          name: TWRP-TB7104-JAMMY-SUCCESS
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

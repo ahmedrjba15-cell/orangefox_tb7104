@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 FINAL-V5
+name: TWRP Build TB7104 FINAL-STEP
 
 on:
   workflow_dispatch:
@@ -16,11 +16,10 @@ jobs:
           sudo apt install python3 python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
-          # ربط المكتبات
+          # ربط المكتبات لنسخة Ubuntu 24.04
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
           
-          # تثبيت repo
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
@@ -39,16 +38,19 @@ jobs:
         run: |
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
-          # نسخ ملفاتك من المسار اللي أنت نظمته
+          # استخدام مسارك الاستراتيجي اللي نظمته
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: Ultimate Python Compatibility Fix
+      - name: Global Python Compatibility Fix (The Destroyer)
         run: |
           cd $HOME/twrp
-          # 1. تحويل الـ print القديمة لشكل بايثون 3
-          find build/make/tools/ -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
-          # 2. حل مشكلة iteritems اللي ظهرت في الصورة الأخيرة
-          find build/make/tools/ -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
+          # المرة دي بنصلح السورس بالكامل مش بس build/make
+          # 1. تصحيح الـ print في كل ملفات البايثون (لحل مشكلة clang الأخيرة)
+          find . -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
+          find . -name "*.py" -exec sed -i 's/print >> sys.stderr, \(.*\)/sys.stderr.write(\1 + "\\n")/g' {} + || true
+          
+          # 2. تصحيح iteritems اللي حليناها قبل كدة
+          find . -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
           
           sudo ln -sf /usr/bin/python3 /usr/bin/python
 
@@ -64,6 +66,6 @@ jobs:
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-Build-65
+          name: TWRP-TB7104-SUCCESS-BUILD
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

@@ -48,12 +48,15 @@ jobs:
         run: |
           cd $HOME/twrp
           export ALLOW_MISSING_DEPENDENCIES=true
-          # تعيين المتغيرات المهمة للبناء
           export LC_ALL=C
+          # السطر السحري لفك عقدة بايثون 2 في السكريبتات القديمة
+          export PATH=$PATH:/usr/bin/python2
+          sudo ln -sf /usr/bin/python2.7 /usr/bin/python
+          
           source build/envsetup.sh
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
-
+          
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:

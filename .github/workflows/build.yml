@@ -1,24 +1,24 @@
-name: TWRP Build TB7104-32BIT-FINAL
+name: TWRP Build TB7104-32BIT-JAMMY
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    # استخدام 20.04 لأنها الأفضل لبناء أندرويد 8 و 9 للـ 32 بت
-    runs-on: ubuntu-20.04 
+    # العودة لـ 22.04 بناءً على طلب القائد لضمان دعم السيرفرات
+    runs-on: ubuntu-22.04 
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Tools (The 32-bit Foundation)
+      - name: Install Tools (Jammy 32-bit Support)
         run: |
           sudo apt update
-          # تثبيت بايثون 2 الأساسي (مستقر جداً في 20.04)
+          # تثبيت بايثون 2 الأساسي (متوفر في مستودعات 22.04)
           sudo apt install python2 python2-dev python-is-python2 -y || true
           
-          # تثبيت المكتبات الضرورية للبناء للـ 32 بت
+          # تثبيت المكتبات الضرورية (بما فيها ncurses5 المتاحة في 22.04)
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
           # تثبيت repo بشكل عالمي
@@ -33,7 +33,7 @@ jobs:
           mkdir -p $HOME/twrp && cd $HOME/twrp
           git config --global user.email "twrp@builder.com"
           git config --global user.name "Builder"
-          # تغيير الـ Branch لـ 8.1 ليتوافق مع أندرويد أوريو وجهازك الـ 32 بت
+          # استخدام سورس 8.1 لأنه المتوافق مع جهازك الـ 32 بت
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
@@ -43,20 +43,21 @@ jobs:
           mkdir -p $DEVICE_PATH
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: 32-bit Compatibility & Python Fix
+      - name: Forced Compatibility Fix (The Destroyer of SyntaxErrors)
         run: |
           cd $HOME/twrp
-          # تنظيف أي كود بايثون قديم عشان نتفادى الـ SyntaxError الملعونة
+          # تنظيف شامل لأي كود بايثون قديم يسبب SyntaxError في بايثون 3
           find build/make/tools -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
           find build/make/tools -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
           
-          # إجبار السيستم على استخدام بايثون 2
+          # إجبار السيستم على استخدام بايثون 2 كمرجع أساسي
           sudo ln -sf /usr/bin/python2 /usr/bin/python
+          sudo ln -sf /usr/bin/python2 /usr/bin/python3 || true
 
       - name: Build Recovery Image
         run: |
           cd $HOME/twrp
-          # أهم سطرين لضمان إن البناء يمشي 32 بت بالمللي
+          # قفل البناء على 32 بت (arm) لمنع تخريف السيرفر
           export TARGET_ARCH=arm
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
@@ -68,6 +69,6 @@ jobs:
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-32bit-SUCCESS
+          name: TWRP-TB7104-Oreo-SUCCESS
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 THE-61-PERCENT-BASE
+name: TWRP Build TB7104 FINAL-MERGE
 
 on:
   workflow_dispatch:
@@ -10,19 +10,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Build Tools (Stable Only)
+      - name: Install Build Tools & Repo
         run: |
           sudo apt update
-          # تثبيت الأدوات اللي السيرفر Noble بيقبلها من غير مشاكل
+          # تثبيت الأدوات المستقرة فقط لتجنب أخطاء الحزم المفقودة
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3 -y
           
-          # تثبيت repo في مكان عالمي مضمون
+          # تثبيت أداة repo في مسار النظام
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
           
-          # حل مشكلة ncurses اللي بتوقف البناء في الأندرويد القديم
+          # ربط مكتبات ncurses الأساسية
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
 
@@ -37,22 +37,26 @@ jobs:
 
       - name: Sync Device Tree
         run: |
-          # استخدام المسار المنظم بتاعك اللي بيضمن وصول السيرفر للملفات
+          # المسار الاستراتيجي اللي أنت نظمته لضمان اكتشاف الملفات
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: The 61% Fix (Python Sed Magic)
+      - name: GitHub-Standard Compatibility Patch
         run: |
           cd $HOME/twrp
-          # ده السحر اللي عدانا الـ 1655 ملف
-          # بنصلح الـ print والـ iteritems والـ stderr يدوي بالـ sed
-          find . -name "*.py" -exec sed -i -r 's/print\s+"([^"]*)"/print("\1")/g' {} + || true
-          find . -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
-          find . -name "*.py" -exec sed -i 's/print >> sys.stderr, \(.*\)/sys.stderr.write(str(\1) + "\\n")/g' {} + || true
+          # الطريقة الرسمية للمطورين: استهداف ملفات الأدوات (build/make/tools) مباشرة
+          # لأنها هي اللي بتضرب دايماً في الـ 15% والـ 61%
           
-          # ربط بايثون 3 ليكون هو المحرك الأساسي
+          # 1. تصليح أقواس الـ print (التي تظهر كخطأ Syntax)
+          find build/make/tools -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
+          
+          # 2. تصليح الـ iteritems الملعونة اللي وقفتنا عند 1555 ملف
+          find build/make/tools -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
+          
+          # 3. خدعة المطورين: جعل بايثون 3 يمثل دور بايثون 2 بالكامل
           sudo ln -sf /usr/bin/python3 /usr/bin/python
+          sudo ln -sf /usr/bin/python3 /usr/bin/python2
 
       - name: Build Recovery Image
         run: |
@@ -60,12 +64,13 @@ jobs:
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
           source build/envsetup.sh
+          # اختيار الديفايس وبدء البناء
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
 
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-61-SUCCESS
+          name: TWRP-TB7104-SUCCESS
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

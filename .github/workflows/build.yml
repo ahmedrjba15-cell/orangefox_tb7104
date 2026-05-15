@@ -62,7 +62,7 @@ jobs:
           mka recoveryimage -j$(nproc)
 
       - name: Upload Recovery
-        uses: actions/upload-artifact@@v4
+        uses: actions/upload-artifact@v4
         with:
           name: TWRP-Final-Image
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img

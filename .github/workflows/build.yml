@@ -20,6 +20,7 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
 
       - name: Force Python 2 (The Modern Way)
         run: |

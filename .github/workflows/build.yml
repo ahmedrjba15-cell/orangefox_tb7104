@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 FINAL-KNOCKOUT
+name: TWRP Build TB7104 DUAL-CHOICE
 
 on:
   workflow_dispatch:
@@ -10,20 +10,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Build Tools
+      - name: Install Build Tools & Libraries
         run: |
           sudo apt update
           sudo apt install python3 python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
-          # ربط المكتبات
+          # ربط المكتبات الأساسية لـ Ubuntu 24.04
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
+
+      - name: Setup Dual Python Strategy (Your Idea)
+        run: |
+          # تنزيل بايثون 2 يدوياً ليكون خياراً إضافياً بجانب بايثون 3
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/python2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/libpython2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/python2.7_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/libpython2.7-stdlib_2.7.18-13ubuntu1.1_amd64.deb
+          sudo apt install ./libpython2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb ./python2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb ./libpython2.7-stdlib_2.7.18-13ubuntu1.1_amd64.deb ./python2.7_2.7.18-13ubuntu1.1_amd64.deb -y || true
           
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
-          sudo ln -sf ~/bin/repo /usr/bin/repo
+          # تفعيل نظام "التخيير" للسيرفر
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+          sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+          
+          # افتراضياً هنخليه يميل للحديث، ولو سكريبت طلب قديم هيلاقيه موجود
+          sudo update-alternatives --set python /usr/bin/python3
 
       - name: Setup TWRP Source
         run: |
@@ -38,30 +49,19 @@ jobs:
         run: |
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
-          # نسخ ملفاتك من مسارك المنظم
+          # المسار الذكي اللي أنت عملته
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: Nuclear Python Fix (Covers All Errors)
-        run: |
-          cd $HOME/twrp
-          # 1. تصحيح الـ print العادية في كل مكان
-          find . -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
-          
-          # 2. تصحيح الـ print اللي بتكتب في stderr (اللي ظهرت في صورتك الأخيرة)
-          find . -name "*.py" -exec sed -i 's/print >> sys.stderr, \(.*\)/sys.stderr.write(str(\1) + "\\n")/g' {} + || true
-          find . -name "*.py" -exec sed -i 's/print >>sys.stderr, \(.*\)/sys.stderr.write(str(\1) + "\\n")/g' {} + || true
-          
-          # 3. تصحيح الـ iteritems
-          find . -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
-          
-          # ربط بايثون
-          sudo ln -sf /usr/bin/python3 /usr/bin/python
-
-      - name: Build Recovery Image
+      - name: Build Recovery Image (Dual Path)
         run: |
           cd $HOME/twrp
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
+          
+          # تصحيح الملفات "على الطاير" عشان لو السيرفر اختار أي طريق ميفشلش
+          find . -name "*.py" -exec sed -i 's/print "\(.*\)"/print("\1")/g' {} + || true
+          find . -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
+          
           source build/envsetup.sh
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
@@ -69,6 +69,6 @@ jobs:
       - name: Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TWRP-TB7104-FINISH
+          name: TWRP-TB7104-Dual-Success
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

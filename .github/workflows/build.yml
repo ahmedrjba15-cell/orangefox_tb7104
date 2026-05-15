@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 FINAL V2
+name: TWRP Build TB7104 DUAL-PYTHON
 
 on:
   workflow_dispatch:
@@ -13,27 +13,30 @@ jobs:
       - name: Install Build Tools & Libraries
         run: |
           sudo apt update
+          # تثبيت بايثون 3 الأساسي والمكتبات
           sudo apt install python3 python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
-          # حل مشكلة المكتبات الناقصة في Ubuntu 24.04
+          # حل مشكلة المكتبات (libtinfo.so.5)
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
-          
-          # تثبيت أداة repo
+
+      - name: Force Install Python 2.7 (The Manual Way)
+        run: |
+          # بما إن Noble شالت بايثون 2، هننزله كملف من مستودعات أقدم لضمان وجوده
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/python2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/libpython2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/python2.7_2.7.18-13ubuntu1.1_amd64.deb
+          curl -O http://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/libpython2.7-stdlib_2.7.18-13ubuntu1.1_amd64.deb
+          sudo apt install ./libpython2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb ./python2.7-minimal_2.7.18-13ubuntu1.1_amd64.deb ./libpython2.7-stdlib_2.7.18-13ubuntu1.1_amd64.deb ./python2.7_2.7.18-13ubuntu1.1_amd64.deb -y || true
+
+      - name: Setup Repo & Env
+        run: |
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
-
-      - name: Setup Legacy Python 2
-        run: |
-          # إضافة مستودع بايثون 2 وتثبيته لأنه ضروري للسورس القديم
-          sudo add-apt-repository ppa:deadsnakes/ppa -y
-          sudo apt update
-          sudo apt install python2.7 -y
-          # إنشاء روابط رمزية للتأكد من أن النظام يرى 'python'
-          sudo ln -sf /usr/bin/python2.7 /usr/bin/python2
+          # ربط بايثون 3 كافتراضي في البداية
           sudo ln -sf /usr/bin/python3 /usr/bin/python
 
       - name: Setup TWRP Source
@@ -45,28 +48,22 @@ jobs:
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
-      - name: Extract Kernel & Prep Device Tree
-        run: |
-          DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
-          mkdir -p $DEVICE_PATH
-          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
-
       - name: Build Recovery Image
         run: |
           cd $HOME/twrp
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
           
-          # الخدعة الكبرى: جعل بايثون 2 هو الأساسي فقط داخل هذه الخطوة لفك عقدة الـ SyntaxError
+          # تفعيل فكرتك: تحويل النظام لاستخدام بايثون 2 فوراً قبل البناء
           sudo ln -sf /usr/bin/python2.7 /usr/bin/python
           
           source build/envsetup.sh
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
 
-      - name: Upload Recovery Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Recovery
+        uses: actions/upload-artifact@@v4
         with:
-          name: TWRP-TB7104-Final
+          name: TWRP-Final-Image
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

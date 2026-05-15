@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 FINAL-STRATEGY
+name: TWRP Build TB7104 REFINED
 
 on:
   workflow_dispatch:
@@ -10,25 +10,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Build Tools & Libraries
+      - name: Install Build Tools (The Right Way)
         run: |
           sudo apt update
-          sudo apt install python3 python3-pip python3-2to3 software-properties-common -y
+          # تثبيت بايثون 3 والمكتبات الأساسية فقط
+          sudo apt install python3 python3-venv python3-pip software-properties-common -y
           sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
           
-          # ربط المكتبات الأساسية (لحل مشكلة libtinfo.so.5)
+          # حل مشكلة ncurses اللي بتوقف البناء دايماً
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
-          
-          # تثبيت أداة repo
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-          chmod a+x ~/bin/repo
-          sudo ln -sf ~/bin/repo /usr/bin/repo
 
       - name: Setup TWRP Source
         run: |
-          # مسح الفولدر القديم للبدء على نظافة تامة
           rm -rf $HOME/twrp
           mkdir -p $HOME/twrp && cd $HOME/twrp
           git config --global user.email "twrp@builder.com"
@@ -38,19 +32,18 @@ jobs:
 
       - name: Sync Device Tree
         run: |
-          # استخدام المسار اللي أنت نظمته في المستودع بتاعك
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: Dual-Path Compatibility Fix (The Choice)
+      - name: Manual Python Script Patching (Your Idea)
         run: |
           cd $HOME/twrp
-          # الخيار الأول: تحويل الكود برمجياً ليتوافق مع بايثون 3 (عشان ميزعلش)
-          # بنصلح الـ print والـ iteritems والـ stderr أوتوماتيكياً
-          find . -name "*.py" -exec 2to3 -w -n {} + || true
+          # استخدام الموديول المدمج في بايثون 3 لتحويل السكريبتات القديمة
+          # ده هيحل مشاكل الـ print والـ stderr اللي ظهرت في الصور
+          find . -name "*.py" -exec python3 -m lib2to3 -w -n {} + || true
           
-          # الخيار الثاني: ربط بايثون ليكون متاحاً تحت أي اسم يطلبه السورس
+          # ربط بايثون 3 ليكون المحرك الأساسي للسيرفر
           sudo ln -sf /usr/bin/python3 /usr/bin/python
           sudo ln -sf /usr/bin/python3 /usr/bin/python2
 
@@ -60,13 +53,6 @@ jobs:
           export ALLOW_MISSING_DEPENDENCIES=true
           export LC_ALL=C
           source build/envsetup.sh
-          # اختيار الديفايس وبدء ملحمة البناء
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
-
-      - name: Upload Recovery Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TWRP-TB7104-IMAGE
-          path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

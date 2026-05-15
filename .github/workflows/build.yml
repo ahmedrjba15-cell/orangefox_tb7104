@@ -1,4 +1,4 @@
-name: TWRP Build TB7104 REFINED V2
+name: TWRP Build TB7104 THE-61-PERCENT-BASE
 
 on:
   workflow_dispatch:
@@ -10,19 +10,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Build Tools & Repo
+      - name: Install Build Tools (Stable Only)
         run: |
           sudo apt update
-          sudo apt install python3 python3-pip python3-distutils software-properties-common -y
-          sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev -y
+          # تثبيت الأدوات اللي السيرفر Noble بيقبلها من غير مشاكل
+          sudo apt install git aria2 bc bison build-essential curl flex g++-multilib gcc-multilib gnupg gperf imagemagick lib32readline-dev lib32z1-dev liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python3 -y
           
-          # تثبيت repo في مكان عالمي عشان السيرفر ميتوهش
+          # تثبيت repo في مكان عالمي مضمون
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
           
-          # حل مشكلة ncurses المعروفة في Ubuntu الحديث
+          # حل مشكلة ncurses اللي بتوقف البناء في الأندرويد القديم
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
           sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
 
@@ -32,26 +32,27 @@ jobs:
           mkdir -p $HOME/twrp && cd $HOME/twrp
           git config --global user.email "twrp@builder.com"
           git config --global user.name "Builder"
-          # الآن أمر repo سيعمل بنجاح
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
       - name: Sync Device Tree
         run: |
+          # استخدام المسار المنظم بتاعك اللي بيضمن وصول السيرفر للملفات
           DEVICE_PATH=$HOME/twrp/device/lenovo/tb7104
           mkdir -p $DEVICE_PATH
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* $DEVICE_PATH/ || true
 
-      - name: Python Compatibility Layer (Manual Patching)
+      - name: The 61% Fix (Python Sed Magic)
         run: |
           cd $HOME/twrp
-          # استخدام الموديول المدمج لتصليح أخطاء الـ print والـ iteritems
-          # ده "التخيير" اللي السيرفر بيفهمه؛ بنصلح الكود عشان يمشي مع بايثون 3
-          python3 -m lib2to3 -w -n . || true
+          # ده السحر اللي عدانا الـ 1655 ملف
+          # بنصلح الـ print والـ iteritems والـ stderr يدوي بالـ sed
+          find . -name "*.py" -exec sed -i -r 's/print\s+"([^"]*)"/print("\1")/g' {} + || true
+          find . -name "*.py" -exec sed -i 's/\.iteritems()/.items()/g' {} + || true
+          find . -name "*.py" -exec sed -i 's/print >> sys.stderr, \(.*\)/sys.stderr.write(str(\1) + "\\n")/g' {} + || true
           
-          # ربط بايثون 3 ليكون هو الافتراضي
+          # ربط بايثون 3 ليكون هو المحرك الأساسي
           sudo ln -sf /usr/bin/python3 /usr/bin/python
-          sudo ln -sf /usr/bin/python3 /usr/bin/python2
 
       - name: Build Recovery Image
         run: |
@@ -61,4 +62,10 @@ jobs:
           source build/envsetup.sh
           lunch omni_tb7104-eng
           mka recoveryimage -j$(nproc)
+
+      - name: Upload Recovery Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TWRP-TB7104-61-SUCCESS
+          path: /home/runner/twrp/out/target/product/tb7104/recovery.img
           

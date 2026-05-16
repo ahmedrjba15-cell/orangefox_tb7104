@@ -1,43 +1,56 @@
+#
+# Copyright (C) 2026 The Android Open Source Project
+# Copyright (C) 2026 TeamWin Recovery Project
+#
+
+# Product Configuration
 PRODUCT_DEVICE := tb7104
 PRODUCT_NAME := omni_tb7104
 PRODUCT_BRAND := Lenovo
 PRODUCT_MODEL := Lenovo Tab E7
 PRODUCT_MANUFACTURER := lenovo
 
+# Device Path
 TARGET_DEVICE := tb7104
 DEVICE_PATH := device/lenovo/tb7104
 
+# Architecture & CPU (The Hybrid Setup for MT8167)
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_CPU_VARIANT := generic
+TARGET_CPU_VARIANT := cortex-a53
 TARGET_CPU_SMP := true
 
+# Platform
 TARGET_BOARD_PLATFORM := mt8167
 TARGET_BOOTLOADER_BOARD_NAME := tb7104
+BOARD_HAS_MTK_HARDWARE := true
+TARGET_USES_64_BIT_BINDER := false
 
-# الكيرنل
+# Kernel Configuration
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/recovery_kernel_raw
-
-# البوت
 BOARD_PREBUILT_BOOTIMAGE := $(DEVICE_PATH)/boot.img
-
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
 
+# Flash Block Sizes
 BOARD_FLASH_BLOCK_SIZE := 131072
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
-BOARD_HAS_NO_SELECT_BUTTON := true
 
+# File Systems
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 
+# Recovery Configuration
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
 ALLOW_MISSING_DEPENDENCIES := true
+BOARD_HAS_NO_SELECT_BUTTON := true
 
-# Recovery Theme
+# TWRP/OrangeFox Graphics & Theme
 TW_THEME := portrait_hdpi
 DEVICE_SCREEN_WIDTH := 600
 DEVICE_SCREEN_HEIGHT := 1024
+RECOVERY_SDCARD_ON_DATA := true
+

@@ -58,7 +58,7 @@ jobs:
           make recoveryimage -j$(nproc)
 
       - name: Upload Recovery Artifact
-        uses: actions/artifact@v4
+        uses: actions/upload-artifact@v4        
         with:
           name: TWRP-TB7104-32bit-SUCCESS
           path: /home/runner/twrp/out/target/product/tb7104/recovery.img

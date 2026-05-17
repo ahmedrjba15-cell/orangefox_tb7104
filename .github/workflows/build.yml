@@ -1,4 +1,4 @@
-name: Build OrangeFox Recovery
+name: Build TWRP Recovery Official
 
 on:
   workflow_dispatch:
@@ -9,36 +9,49 @@ jobs:
     
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - name: Install Tools
+    - name: Install Tools & Repo Tool
       run: |
         sudo apt-get update
         sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        sudo ln -sf ~/bin/repo /usr/bin/repo
 
-    - name: Setup TWRP 8.1 Source
+    - name: Initialize and Sync TWRP 8.1 Source
       run: |
-        mkdir ~/orangefox
-        cd ~/orangefox
+        mkdir ~/twrp
+        cd ~/twrp
         git config --global user.name "ahmedrjba15-cell"
         git config --global user.email "ahmed@example.com"
-        # ضع أمر المزامنة أو تحميل السورس هنا
         
-    - name: Sync Device Tree
+        # تحميل سورس TWRP الرسمي المعتمد لأندرويد 8.1 (OmniROM Manifest)
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
+        
+        # مزامنة السورس (سحب الملفات الفعلي)
+        repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
+
+    - name: Sync Your Device Tree
       run: |
-        mkdir -p ~/orangefox/device/lenovo/tb7104
-        cp -r $GITHUB_WORKSPACE/* ~/orangefox/device/lenovo/tb7104/ || true
+        # إنشاء مسار جهاز لينوفو بالملي داخل سورس الـ TWRP
+        mkdir -p ~/twrp/device/lenovo/tb7104
+        cp -r $GITHUB_WORKSPACE/* ~/twrp/device/lenovo/tb7104/
 
     - name: Build Recovery Image
       run: |
-        cd ~/orangefox
+        cd ~/twrp
         export ALLOW_MISSING_DEPENDENCIES=true
-        source build/envsetup.sh || true
-        # لو مفيش ملف envsetup حالياً، السيرفر هيعدي وميقفش بفضل true
+        # تفعيل البيئة البرمجية للـ TWRP
+        source build/envsetup.sh
+        lunch omni_tb7104-eng
+        # الطبخ النهائي
+        make recoveryimage -j$(nproc)
 
     - name: Upload Recovery Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
-        name: OrangeFox-Recovery-tb7104
-        path: ~/orangefox/out/target/product/tb7104/
+        name: TWRP-Recovery-tb7104
+        path: ~/twrp/out/target/product/tb7104/recovery.img
         

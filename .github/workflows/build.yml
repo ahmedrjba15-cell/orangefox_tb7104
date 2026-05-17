@@ -9,7 +9,7 @@ jobs:
     
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install Tools & Repo Tool
       run: |
@@ -50,7 +50,7 @@ jobs:
         make recoveryimage -j$(nproc)
 
     - name: Upload Recovery Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: TWRP-Recovery-tb7104
         path: ~/twrp/out/target/product/tb7104/recovery.img

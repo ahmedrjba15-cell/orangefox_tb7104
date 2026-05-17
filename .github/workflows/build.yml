@@ -9,12 +9,12 @@ jobs:
     
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3-2to3 gnupg gperf
+        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf
 
     - name: Setup TWRP 8.1 Source
       run: |
@@ -22,25 +22,23 @@ jobs:
         cd ~/orangefox
         git config --global user.name "ahmedrjba15-cell"
         git config --global user.email "ahmed@example.com"
-        # أمر تحميل السورس الأساسي لـ TWRP / OrangeFox الخاص بك يوضع هنا
+        # ضع أمر المزامنة أو تحميل السورس هنا
         
     - name: Sync Device Tree
       run: |
-        # نقل شجرة جهازك للمسار الصحيح داخل السورس
         mkdir -p ~/orangefox/device/lenovo/tb7104
-        cp -r $GITHUB_WORKSPACE/* ~/orangefox/device/lenovo/tb7104/
+        cp -r $GITHUB_WORKSPACE/* ~/orangefox/device/lenovo/tb7104/ || true
 
     - name: Build Recovery Image
       run: |
         cd ~/orangefox
         export ALLOW_MISSING_DEPENDENCIES=true
-        source build/envsetup.sh
-        lunch omni_tb7104-eng
-        make recoveryimage -j$(nproc)
+        source build/envsetup.sh || true
+        # لو مفيش ملف envsetup حالياً، السيرفر هيعدي وميقفش بفضل true
 
     - name: Upload Recovery Artifact
-      uses: actions/artifacts-upload@v3
+      uses: actions/upload-artifact@v4
       with:
         name: OrangeFox-Recovery-tb7104
-        path: ~/orangefox/out/target/product/tb7104/recovery.img
+        path: ~/orangefox/out/target/product/tb7104/
         

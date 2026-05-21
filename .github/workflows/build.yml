@@ -8,11 +8,15 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Install Tools, Repo & Java 8
+    - name: Install Tools, Repo, Java 8 & Libs
       run: |
         sudo apt-get update
-        # تثبيت الأدوات الأساسية مع جاوا 8 المطلوبة للسورس القديم
-        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal openjdk-8-jdk
+        # تثبيت الأدوات الأساسية، جاوا 8، ومكتبات التوافقية القديمة libncurses5
+        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal openjdk-8-jdk libncurses5 libncurses5:i386 libtinfo5
+        
+        # عمل روابط توافقية إضافية عشان نضمن إن الـ Compiler يلاقي المكتبة تحت أي اسم
+        sudo ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
+        sudo ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
         
         mkdir -p ~/bin
         curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo

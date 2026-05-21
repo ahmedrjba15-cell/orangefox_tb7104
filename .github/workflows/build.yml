@@ -31,14 +31,14 @@ jobs:
 
     - name: Sync Your Device Tree
       run: |
-        mkdir -p ~/twrp/device/lenovo/tb7104        
-        # 1. نسخ محتويات المجلد الداخلي بالكامل (بما فيهم omni_tb7104.mk و BoardConfig.mk)
-        cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/twrp/device/lenovo/tb7104/        
-        # 2. نسخ الملفات اللي موجودة بره في الروت (AndroidProducts.mk و AndroidBoard.mk و vendorsetup.sh) في نفس المكان
-        cp $GITHUB_WORKSPACE/AndroidProducts.mk ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
-        cp $GITHUB_WORKSPACE/AndroidBoard.mk ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
-        cp $GITHUB_WORKSPACE/vendorsetup.sh ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
+        # 1. عمل الفولدر بالمسار الصحيح تماماً جوة السورس
+        mkdir -p ~/orangefox_tb7104/device/lenovo/tb7104
         
+        # 2. نسخ كل محتويات الـ Repo بتاعك مباشرة إلى مسار الجهاز
+        cp -r $GITHUB_WORKSPACE/* ~/orangefox_tb7104/device/lenovo/tb7104/
+        
+        # التحقق من وجود الملفات في مكانها الصحيح
+        ls -la ~/orangefox_tb7104/device/lenovo/tb7104/
         # التحقق النهائي من وجود الملفات كلها مع بعضها في نفس المجلد
         ls -la ~/orangefox_tb7104/device/lenovo/tb7104/
 
@@ -46,8 +46,13 @@ jobs:
       run: |
         cd ~/orangefox_tb7104
         export ALLOW_MISSING_DEPENDENCIES=true
+        
+        # بناء البيئة والـ lunch
         source build/envsetup.sh
         lunch omni_tb7104-eng
+        
+        # أمر البناء الصافي للـ TWRP
+        make recoveryimage -j$(nproc)
         make recoveryimage -j$(nproc)
 
     - name: Upload Recovery Artifact

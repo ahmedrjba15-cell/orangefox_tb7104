@@ -12,33 +12,41 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf
-        mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-        chmod a+x ~/bin/repo
-        sudo ln -sf ~/bin/repo /usr/bin/repo
+        mkdir -p /home/runner/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > /home/runner/bin/repo
+        chmod a+x /home/runner/bin/repo
+        sudo ln -sf /home/runner/bin/repo /usr/bin/repo
 
     - name: Initialize and Sync TWRP 8.1 Source
       run: |
-        mkdir -p ~/orangefox_tb7104
-        cd ~/orangefox_tb7104
+        mkdir -p /home/runner/orangefox_tb7104
+        cd /home/runner/orangefox_tb7104
         git config --global user.name "ahmedrjba15-cell"
         git config --global user.email "ahmed@example.com"
         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
         repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
 
-    - name: Checkout Your Device Tree Directly
+    - name: Checkout Your Device Tree
       uses: actions/checkout@v4
       with:
-        path: orangefox_tb7104/device/lenovo/tb7104
+        path: /home/runner/orangefox_tb7104/device/lenovo/tb7104
+        sparse-checkout: |
+          device/lenovo/tb7104
 
-    - name: Verify Device Tree Files
+    - name: Clean Up Nested Folder Bug
       run: |
-        echo "=== Checking target folder ==="
-        ls -la ~/orangefox_tb7104/device/lenovo/tb7104/
+        # الكود هنا بيصلح تكرار المجلدات الناتجة عن الـ checkout
+        cd /home/runner/orangefox_tb7104/device/lenovo/tb7104
+        if [ -d "device" ]; then
+          cp -r device/lenovo/tb7104/* .
+          rm -rf device
+        fi
+        echo "=== Verification: Checking Target Files ==="
+        ls -la /home/runner/orangefox_tb7104/device/lenovo/tb7104/
 
     - name: Build Recovery Image
       run: |
-        cd ~/orangefox_tb7104
+        cd /home/runner/orangefox_tb7104
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_tb7104-eng
@@ -48,5 +56,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TWRP-Recovery-tb7104
-        path: ~/orangefox_tb7104/out/target/product/tb7104/recovery.img
+        path: /home/runner/orangefox_tb7104/out/target/product/tb7104/recovery.img
         

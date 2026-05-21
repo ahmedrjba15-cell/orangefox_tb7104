@@ -8,10 +8,12 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Install Tools & Repo Tool
+    - name: Install Tools, Repo & Java 8
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal
+        # تثبيت الأدوات الأساسية مع جاوا 8 المطلوبة للسورس القديم
+        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal openjdk-8-jdk
+        
         mkdir -p ~/bin
         curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
         chmod a+x ~/bin/repo
@@ -38,11 +40,11 @@ jobs:
         # نقل المجلد الداخلي المنظم
         cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
         
-        # نقل ملفات الـ Root الأساسية اللي برة
+        # نقل ملفات الـ Root الأساسية
         cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
         
-        # إنشاء ملف الـ AndroidProducts.mk بشكل صحيح
+        # التأكد من تهيئة ملف المنتَج
         echo 'PRODUCT_MAKEFILES := $(LOCAL_DIR)/omni_tb7104.mk' > device/lenovo/tb7104/AndroidProducts.mk
         
         # تنظيف المؤقت
@@ -53,9 +55,15 @@ jobs:
 
     - name: Build Recovery Image
       run: |
-        # تحويل البايثون الافتراضي لـ Python 2 مؤقتاً عشان سكريبتات الـ Omni القديمة تشتغل
+        # 1. إجبار السيرفر على استخدام Java 8 الافتراضية للـ Build
+        sudo update-java-alternatives --set java-1.8.0-openjdk-amd64 || true
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+        export PATH=$JAVA_HOME/bin:$PATH
+        
+        # 2. تحويل البايثون الافتراضي لـ Python 2
         sudo ln -sf /usr/bin/python2 /usr/bin/python
         
+        # 3. بدء البناء الصافي
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_tb7104-eng

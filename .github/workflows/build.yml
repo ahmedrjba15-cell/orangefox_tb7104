@@ -11,7 +11,7 @@ jobs:
     - name: Install Tools & Repo Tool
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf
+        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal
         mkdir -p ~/bin
         curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
         chmod a+x ~/bin/repo
@@ -35,14 +35,14 @@ jobs:
         rm -rf device/lenovo/tb7104
         mkdir -p device/lenovo/tb7104
         
-        # 1. نقل المجلد الداخلي المنظم
+        # نقل المجلد الداخلي المنظم
         cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
         
-        # 2. نقل ملفات الـ Root الأساسية اللي برة عشان الـ lunch يلقطها
+        # نقل ملفات الـ Root الأساسية اللي برة
         cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
         
-        # 3. إجبار إنشاء ملف الـ AndroidProducts.mk لو مش موجود عشان يشاور على الـ mk صح
+        # إنشاء ملف الـ AndroidProducts.mk بشكل صحيح
         echo 'PRODUCT_MAKEFILES := $(LOCAL_DIR)/omni_tb7104.mk' > device/lenovo/tb7104/AndroidProducts.mk
         
         # تنظيف المؤقت
@@ -53,6 +53,9 @@ jobs:
 
     - name: Build Recovery Image
       run: |
+        # تحويل البايثون الافتراضي لـ Python 2 مؤقتاً عشان سكريبتات الـ Omni القديمة تشتغل
+        sudo ln -sf /usr/bin/python2 /usr/bin/python
+        
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_tb7104-eng

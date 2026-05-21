@@ -22,8 +22,8 @@ jobs:
 
     - name: Initialize and Sync TWRP 8.1 Source
       run: |
-        mkdir ~/twrp
-        cd ~/twrp
+        mkdir ~/orangefox_tb7104
+        cd ~/orangefox_tb7104
         git config --global user.name "ahmedrjba15-cell"
         git config --global user.email "ahmed@example.com"
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
@@ -31,23 +31,20 @@ jobs:
 
     - name: Sync Your Device Tree
       run: |
-        rm -rf ~/twrp/device/lenovo/tb7104
-        mkdir -p ~/twrp/device/lenovo/tb7104
-        
+        mkdir -p ~/twrp/device/lenovo/tb7104        
         # 1. نسخ محتويات المجلد الداخلي بالكامل (بما فيهم omni_tb7104.mk و BoardConfig.mk)
-        cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/twrp/device/lenovo/tb7104/
-        
+        cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/twrp/device/lenovo/tb7104/        
         # 2. نسخ الملفات اللي موجودة بره في الروت (AndroidProducts.mk و AndroidBoard.mk و vendorsetup.sh) في نفس المكان
-        cp $GITHUB_WORKSPACE/AndroidProducts.mk ~/twrp/device/lenovo/tb7104/ 2>/dev/null || true
-        cp $GITHUB_WORKSPACE/AndroidBoard.mk ~/twrp/device/lenovo/tb7104/ 2>/dev/null || true
-        cp $GITHUB_WORKSPACE/vendorsetup.sh ~/twrp/device/lenovo/tb7104/ 2>/dev/null || true
+        cp $GITHUB_WORKSPACE/AndroidProducts.mk ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
+        cp $GITHUB_WORKSPACE/AndroidBoard.mk ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
+        cp $GITHUB_WORKSPACE/vendorsetup.sh ~/orangefox_tb7104/device/lenovo/tb7104/ 2>/dev/null || true
         
         # التحقق النهائي من وجود الملفات كلها مع بعضها في نفس المجلد
-        ls -la ~/twrp/device/lenovo/tb7104/
+        ls -la ~/orangefox_tb7104/device/lenovo/tb7104/
 
     - name: Build Recovery Image
       run: |
-        cd ~/twrp
+        cd ~/orangefox_tb7104
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_tb7104-eng

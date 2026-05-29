@@ -11,7 +11,7 @@ BOARD_HAS_MTK_HARDWARE := true
 TARGET_USES_64_BIT_BINDER := false
 
 # إعدادات الكيرنل (هنا اللعبة الأساسية في الضغط)
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
+TARGET_PREBUILT_KERNEL := device/lenovo/tb7104/prebuilt/kernel
 BOARD_RAMDISK_COMPRESSION := xz
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,32N2 buildvariant=user
 BOARD_KERNEL_BASE := 0x40000000

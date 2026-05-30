@@ -8,14 +8,12 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Check out Repository
-      uses: actions/checkout@v4
-
     - name: Install Tools, Repo, Java 8 & Libs
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal opendkim-tools
-        # فوراً تنزيل وتثبيت المكتبة القديمة بدون مشاكل
+        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal openjdk-8-jdk libtinfo5
+        
+        # تنزيل وتثبيت المكتبة القديمة يدويًا لحل مشكلة Clang فورًا
         wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libncurses5_6.3-2ubuntu0.1_amd64.deb
         sudo dpkg -i libncurses5_6.3-2ubuntu0.1_amd64.deb
         
@@ -45,12 +43,11 @@ jobs:
         # نسخ كل محتويات فولدر التري الداخلي
         cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
         
-        # نسخ الملفات الأساسية اللي موجودة بره في الـ Root بتاع الـ repo إلى فولدر الجهاز لمنع خطأ الـ fstab والـ Ninja
+        # نسخ الملفات الأساسية المرمية بره في الـ Root لجوه فولدر الجهاز عشان السيستم يشوف الـ fstab
         cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true
         
-        # تنظيف الفولدر المؤقت
         rm -rf temp_device_tree
 
     - name: Build Recovery Image
@@ -67,7 +64,7 @@ jobs:
         make recoveryimage -j$(nproc)
 
     - name: Upload Recovery Artifact
-      uses: actions/actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4
       with:
         name: TWRP-Recovery-tb7104
         path: out/target/product/tb7104/recovery.img

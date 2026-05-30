@@ -38,12 +38,19 @@ jobs:
     - name: Setup Official Device Tree Path
       run: |
         rm -rf device/lenovo/tb7104
-        mkdir -p device/lenovo
+        mkdir -p device/lenovo/tb7104
         
-        # نسخ الفولدر بالكامل للمسار الصح بدون تكرار
-        cp -r temp_device_tree/device/lenovo/tb7104 device/lenovo/
+        # نسخ الملفات الداخلية ملف ملف لمنع التكرار الغبي للمسارات
+        cp temp_device_tree/device/lenovo/tb7104/*.mk device/lenovo/tb7104/ 2>/dev/null || true
+        cp temp_device_tree/device/lenovo/tb7104/*.prop device/lenovo/tb7104/ 2>/dev/null || true
+        cp temp_device_tree/device/lenovo/tb7104/*.fstab device/lenovo/tb7104/ 2>/dev/null || true
+        cp temp_device_tree/device/lenovo/tb7104/*.rc device/lenovo/tb7104/ 2>/dev/null || true
         
-        # نسخ الملفات الأساسية اللي بره لجوه الفولدر الجديد
+        # نسخ الفولدرات الفرعية لو موجودة
+        cp -r temp_device_tree/device/lenovo/tb7104/prebuilt device/lenovo/tb7104/ 2>/dev/null || true
+        cp -r temp_device_tree/device/lenovo/tb7104/recovery device/lenovo/tb7104/ 2>/dev/null || true
+        
+        # نسخ الملفات اللي بره في الـ Root
         cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true

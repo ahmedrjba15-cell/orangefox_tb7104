@@ -37,20 +37,20 @@ jobs:
 
     - name: Setup Official Device Tree Path
       run: |
-        # تنظيف أي مسارات قديمة لمنع التداخل
+        # تنظيف شامل وجذري لأي بقايا قديمة
         rm -rf device/lenovo/tb7104
-        mkdir -p device/lenovo
+        mkdir -p device/lenovo/tb7104
         
-        # نقل الفولدر الداخلي النظيف مباشرة بالـ mv لتجنب تكرار الهيكل الداخلي
-        mv temp_device_tree/device/lenovo/tb7104 device/lenovo/
+        # نسخ محتويات الفولدر الداخلي النظيف مباشرة
+        cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
         
-        # نسخ الملفات التلاتة الأساسية اللي موجودة بره في الـ Root للمسار المظبوط
-        cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/ 2>/dev/null || true
-        cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
-        cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true
+        # نسخ الملفات الأساسية التلاتة اللي بره لجوه الفولدر عشان النينجا يلاقيهم فوراً
+        cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/AndroidBoard.mk
+        cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/AndroidProducts.mk
+        cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/vendorsetup.sh
         
-        # مسح الفولدر المؤقت تماماً
-        rm -rf temp_device_tree
+        # تنظيف الفولدر المؤقت
+        rm -rf temp_device_tree      
 
     - name: Build Recovery Image
       run: |

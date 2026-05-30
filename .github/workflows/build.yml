@@ -38,18 +38,18 @@ jobs:
     - name: Setup Official Device Tree Path
       run: |
         rm -rf device/lenovo/tb7104
-        mkdir -p device/lenovo/tb7104
+        mkdir -p device/lenovo
         
-        # نسخ كل محتويات فولدر التري الداخلي
-        cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
+        # نسخ الفولدر بالكامل للمسار الصح بدون تكرار
+        cp -r temp_device_tree/device/lenovo/tb7104 device/lenovo/
         
-        # نسخ الملفات الأساسية المرمية بره في الـ Root لجوه فولدر الجهاز عشان السيستم يشوف الـ fstab
+        # نسخ الملفات الأساسية اللي بره لجوه الفولدر الجديد
         cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/ 2>/dev/null || true
         cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/ 2>/dev/null || true
         
         rm -rf temp_device_tree
-
+        
     - name: Build Recovery Image
       run: |
         sudo update-java-alternatives --set java-1.8.0-openjdk-amd64 || true

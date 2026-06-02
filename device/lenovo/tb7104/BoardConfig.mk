@@ -12,7 +12,6 @@ TARGET_USES_64_BIT_BINDER := false
 
 # إعدادات الكيرنل (هنا اللعبة الأساسية في الضغط)
 TARGET_PREBUILT_KERNEL := device/lenovo/tb7104/prebuilt/kernel
-BOARD_RAMDISK_COMPRESSION := gz
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,32N2 buildvariant=user
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
@@ -41,3 +40,23 @@ TW_THEME := portrait_hdpi
 DEVICE_SCREEN_WIDTH := 600
 DEVICE_SCREEN_HEIGHT := 1024
 RECOVERY_SDCARD_ON_DATA := true
+
+# --- Optimizations for Size ---
+TW_EXTRA_LANGUAGES := false
+TW_EXCLUDE_SUPERSU := true
+TW_EXCLUDE_MTP := true
+TW_INCLUDE_NTFS_3G := false
+TW_INCLUDE_REPACK := false
+TW_NO_USB_STORAGE := true
+TW_EXCLUDE_PYTHON := true
+TW_INCLUDE_CRYPTO := false
+TW_INCLUDE_CRYPTO_FBE := false
+BOARD_RAMDISK_COMPRESSION := lzma
+
+# --- Force Slim Build ---
+BOARD_RAMDISK_COMPRESSION := lzma
+TW_SKIP_COMPATIBILITY_CHECK := true
+TW_EXCLUDE_APEX := true
+TW_NO_BIND_SYSTEM := true
+TW_NO_EXFAT := true
+TW_EXCLUDE_PYTHON := true

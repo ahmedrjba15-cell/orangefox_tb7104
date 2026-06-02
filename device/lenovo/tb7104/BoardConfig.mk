@@ -30,7 +30,7 @@ TW_EXCLUDE_SUPERSU := true
 TW_EXTRA_LANGUAGES := false
 
 # إعدادات الريكفري
-TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+TARGET_RECOVERY_FSTAB := device/lenovo/tb7104/recovery.fstab
 ALLOW_MISSING_DEPENDENCIES := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 

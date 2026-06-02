@@ -18,7 +18,7 @@ BOARD_KERNEL_PAGESIZE := 2048
 
 # أحجام الـ Partition (ممنوع اللعب فيها غير بحدود)
 BOARD_FLASH_BLOCK_SIZE := 131072
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 33554432
 
 # تقليص الحجم (هنا بنشيل الحاجات التقيلة)
 TW_EXCLUDE_MTP := true

@@ -42,8 +42,8 @@ jobs:
         mkdir -p device/lenovo/tb7104
         
         # نسخ محتويات الفولدر الداخلي النظيف مباشرة
-        cp -r temp_device_tree/device/lenovo/tb7104/* device/lenovo/tb7104/
         
+        cp -r temp_device_tree/device/lenovo/tb7104/. device/lenovo/tb7104/        
         # نسخ الملفات الأساسية التلاتة اللي بره لجوه الفولدر عشان النينجا يلاقيهم فوراً
         cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/AndroidBoard.mk
         cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/AndroidProducts.mk

@@ -12,7 +12,7 @@ TARGET_USES_64_BIT_BINDER := false
 
 # إعدادات الكيرنل (هنا اللعبة الأساسية في الضغط)
 TARGET_PREBUILT_KERNEL := device/lenovo/tb7104/prebuilt/kernel
-BOARD_RAMDISK_COMPRESSION := xz
+BOARD_RAMDISK_COMPRESSION := gz
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,32N2 buildvariant=user
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
@@ -28,7 +28,9 @@ TW_INCLUDE_REPACK := false
 TW_NO_USB_STORAGE := true
 TW_EXCLUDE_SUPERSU := true
 TW_EXTRA_LANGUAGES := false
-
+TW_INCLUDE_CRYPTO := false
+TW_INCLUDE_CRYPTO_FBE := false
+TW_EXCLUDE_DEFAULT_USB_STORAGE := true
 # إعدادات الريكفري
 TARGET_RECOVERY_FSTAB := device/lenovo/tb7104/recovery.fstab
 ALLOW_MISSING_DEPENDENCIES := true

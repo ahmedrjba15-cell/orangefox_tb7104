@@ -18,7 +18,6 @@ BOARD_KERNEL_PAGESIZE := 2048
 
 # أحجام الـ Partition (ممنوع اللعب فيها غير بحدود)
 BOARD_FLASH_BLOCK_SIZE := 131072
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 33554432
 
 # تقليص الحجم (هنا بنشيل الحاجات التقيلة)
 TW_EXCLUDE_MTP := true
@@ -60,3 +59,13 @@ TW_EXCLUDE_APEX := true
 TW_NO_BIND_SYSTEM := true
 TW_NO_EXFAT := true
 TW_EXCLUDE_PYTHON := true
+TW_INCLUDE_NTFS_3G := false
+TW_INCLUDE_CRYPTO := false
+TW_EXCLUDE_PYTHON := true
+TW_EXCLUDE_PYTHON_PATH := true
+TW_EXCLUDE_APEX := true
+TW_NO_BIND_SYSTEM := true
+TW_NO_EXFAT := true
+TW_INCLUDE_REPACK := false
+TW_DISABLE_BASH := true
+TW_DISABLE_TWRPSPLASH := true

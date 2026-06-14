@@ -1,4 +1,5 @@
-name: Build TWRP Recovery Official
+name: Build OrangeFox/TWRP Recovery Official
+
 on:
   workflow_dispatch:
   push:
@@ -6,16 +7,66 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Free Up Disk Space
+      - name: 1. Free Up Disk Space
         run: |
           sudo swapoff -a
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      - name: Checkout
+          sudo rm -rf /usr/local/lib/android
+          docker image prune -a -f
+          df -h
+
+      - name: 2. Checkout Device Tree
         uses: actions/checkout@v4
-      - name: Build
-        run: echo "Build starting..."
+        with:
+          path: device/lenovo/tb7104
+
+      - name: 3. Install Tools & Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagenick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          sudo ln -sf ~/bin/repo /usr/bin/repo
+
+      - name: 4. Initialize and Sync Minimal Manifest
+        run: |
+          mkdir -p ~/fox_8.1
+          cd ~/fox_8.1
+          git config --global user.name "ahmedrjba15-cell"
+          git config --global user.email "ahmed@example.com"
+          repo init --depth=1 -u https://gitlab.com/OrangeFox/Manifest.git -b fox_8.1
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc)
+
+      - name: 5. Prepare Device Tree
+        run: |
+          mkdir -p ~/fox_8.1/device/lenovo/tb7104
+          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/fox_8.1/device/lenovo/tb7104/
+          
+          # تعديل حجم البارتيشن والضغط لـ lzma فوراً قبل البناء لضمان الحجم (16.5 ميجا)
+          cd ~/fox_8.1/device/lenovo/tb7104
+          sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
+          sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
+          echo "TARGET_STRIP := strip" >> BoardConfig.mk
+
+      - name: 6. Build Recovery Image
+        run: |
+          cd ~/fox_8.1
+          export ALLOW_MISSING_DEPENDENCIES=true
+          source build/envsetup.sh
+          lunch omni_tb7104-eng || lunch twrp_tb7104-eng
+          make clean
+          make recoveryimage -j$(nproc)
+
+      - name: 7. Upload Recovery Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrangeFox-TB7104-Recovery
+          path: /home/runner/fox_8.1/out/target/product/tb7104/recovery.img
+EOF

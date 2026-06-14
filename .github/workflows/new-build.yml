@@ -1,4 +1,4 @@
-name: Build OrangeFox/TWRP Recovery Official
+name: New Build System
 
 on:
   workflow_dispatch:

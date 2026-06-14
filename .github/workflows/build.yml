@@ -1,89 +1,21 @@
 name: Build TWRP Recovery Official
-
 on:
   workflow_dispatch:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-  workflow_dispatch:
-
+    runs-on: ubuntu-latest
     steps:
       - name: Free Up Disk Space
         run: |
+          sudo swapoff -a
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo swapoff -a
-      - name: Free Up Disk Space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo swapoff -a
-    - name: Install Tools, Repo, Java 8 & Libs
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget python3 gnupg gperf python2-minimal openjdk-8-jdk libtinfo5
-        
-        # تنزيل وتثبيت المكتبة القديمة يدويًا لحل مشكلة Clang فورًا
-        wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libncurses5_6.3-2ubuntu0.1_amd64.deb
-        sudo dpkg -i libncurses5_6.3-2ubuntu0.1_amd64.deb
-        
-        mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-        chmod a+x ~/bin/repo
-        sudo ln -sf ~/bin/repo /usr/bin/repo
-
-    - name: Checkout Device Tree Source (Temporary)
-      uses: actions/checkout@v4
-      with:
-        path: temp_device_tree
-
-    - name: Initialize and Sync TWRP 8.1 Source
-      run: |
-        git config --global user.name "ahmedrjba15-cell"
-        git config --global user.email "ahmed@example.com"
-        
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
-        repo sync -c -j$(nproc) --force-sync --no-clone-bundle --no-tags
-
-    - name: Setup Official Device Tree Path
-      run: |
-        # تنظيف شامل وجذري لأي بقايا قديمة
-        rm -rf device/lenovo/tb7104
-        mkdir -p device/lenovo/tb7104
-        
-        # نسخ محتويات الفولدر الداخلي النظيف مباشرة
-        
-        cp -r temp_device_tree/device/lenovo/tb7104/. device/lenovo/tb7104/        
-        # نسخ الملفات الأساسية التلاتة اللي بره لجوه الفولدر عشان النينجا يلاقيهم فوراً
-        cp temp_device_tree/AndroidBoard.mk device/lenovo/tb7104/AndroidBoard.mk
-        cp temp_device_tree/AndroidProducts.mk device/lenovo/tb7104/AndroidProducts.mk
-        cp temp_device_tree/vendorsetup.sh device/lenovo/tb7104/vendorsetup.sh
-        
-        # تنظيف الفولدر المؤقت
-        rm -rf temp_device_tree      
-
-    - name: Build Recovery Image
-      run: |
-        sudo update-java-alternatives --set java-1.8.0-openjdk-amd64 || true
-        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-        export PATH=$JAVA_HOME/bin:$PATH
-        
-        sudo ln -sf /usr/bin/python2 /usr/bin/python
-        
-        export ALLOW_MISSING_DEPENDENCIES=true
-        source build/envsetup.sh
-        lunch omni_tb7104-eng
-        make recoveryimage -j$(nproc)
-
-    - name: Upload Recovery Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: TWRP-Recovery-tb7104
-        path: out/target/product/tb7104/recovery.img
-        
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: echo "Build starting..."

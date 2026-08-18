@@ -10,77 +10,48 @@ TARGET_BOARD_PLATFORM := mt8167
 BOARD_HAS_MTK_HARDWARE := true
 TARGET_USES_64_BIT_BINDER := false
 
-# إعدادات الكيرنل (هنا اللعبة الأساسية في الضغط)
+# إعدادات الكيرنل
 TARGET_PREBUILT_KERNEL := device/lenovo/tb7104/prebuilt/kernel
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,32N2 buildvariant=user
+BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
+BOARD_KERNEL_COMPRESSION := xz
 
-# أحجام الـ Partition (ممنوع اللعب فيها غير بحدود)
+# أحجام الـ Partition
 BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504
 
-# تقليص الحجم (هنا بنشيل الحاجات التقيلة)
-TW_EXCLUDE_MTP := true
-TW_INCLUDE_NTFS_3G := false
-TW_INCLUDE_REPACK := false
-TW_NO_USB_STORAGE := true
-TW_EXCLUDE_SUPERSU := true
-TW_EXTRA_LANGUAGES := false
-TW_INCLUDE_CRYPTO := false
-TW_INCLUDE_CRYPTO_FBE := false
-TW_EXCLUDE_DEFAULT_USB_STORAGE := true
-# إعدادات الريكفري
+# إعدادات الشاشة والدوران (Landscape متناسق)
+TW_THEME := landscape_hdpi
+DEVICE_SCREEN_WIDTH := 1024
+DEVICE_SCREEN_HEIGHT := 600
+DEVICE_RESOLUTION := 1024x600
+RECOVERY_SDCARD_ON_DATA := true
+
+# إعدادات الريكفري والملفات
 TARGET_RECOVERY_FSTAB := device/lenovo/tb7104/recovery.fstab
 ALLOW_MISSING_DEPENDENCIES := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 
-# إعدادات الشاشة (خفيفة)
-TW_THEME := portrait_hdpi
-DEVICE_SCREEN_WIDTH := 600
-DEVICE_SCREEN_HEIGHT := 1024
-RECOVERY_SDCARD_ON_DATA := true
-
-# --- Optimizations for Size ---
-TW_EXTRA_LANGUAGES := false
-TW_EXCLUDE_SUPERSU := true
-TW_EXCLUDE_MTP := true
-TW_INCLUDE_NTFS_3G := false
-TW_INCLUDE_REPACK := false
-TW_NO_USB_STORAGE := true
-TW_EXCLUDE_PYTHON := true
-TW_INCLUDE_CRYPTO := false
-TW_INCLUDE_CRYPTO_FBE := false
+# ضغط وتخفيف الحجم (Slim Build & Optimizations)
 BOARD_RAMDISK_COMPRESSION := lzma
-
-# --- Force Slim Build ---
-BOARD_RAMDISK_COMPRESSION := lzma
+RECOVERY_STRIP_SYMBOL := true
 TW_SKIP_COMPATIBILITY_CHECK := true
 TW_EXCLUDE_APEX := true
 TW_NO_BIND_SYSTEM := true
 TW_NO_EXFAT := true
 TW_EXCLUDE_PYTHON := true
+TW_EXCLUDE_PYTHON_PATH := true
 TW_INCLUDE_NTFS_3G := false
 TW_INCLUDE_CRYPTO := false
-TW_EXCLUDE_PYTHON := true
-TW_EXCLUDE_PYTHON_PATH := true
-TW_EXCLUDE_APEX := true
-TW_NO_BIND_SYSTEM := true
-TW_NO_EXFAT := true
+TW_INCLUDE_CRYPTO_FBE := false
 TW_INCLUDE_REPACK := false
+TW_EXCLUDE_MTP := true
+TW_NO_USB_STORAGE := true
+TW_EXCLUDE_DEFAULT_USB_STORAGE := true
+TW_EXCLUDE_SUPERSU := true
+TW_EXTRA_LANGUAGES := false
 TW_DISABLE_BASH := true
 TW_DISABLE_TWRPSPLASH := true
-DEVICE_RESOLUTION := 600x1024
 
-# Optimization for size
-BOARD_RAMDISK_COMPRESSION := lzma
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504
-BOARD_KERNEL_COMPRESSION := xz
-RECOVERY_STRIP_SYMBOL := true
-
-# Optimization for size
-BOARD_RAMDISK_COMPRESSION := lzma
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504
-BOARD_KERNEL_COMPRESSION := xz
-RECOVERY_STRIP_SYMBOL := true
-RECOVERY_STRIP_SYMBOL := true
-BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive

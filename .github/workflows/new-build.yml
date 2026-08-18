@@ -20,8 +20,6 @@ jobs:
 
       - name: 2. Checkout Device Tree
         uses: actions/checkout@v4
-        with:
-          path: device/lenovo/tb7104
 
       - name: 3. Install Tools & Build Dependencies
         run: |
@@ -44,16 +42,15 @@ jobs:
 
       - name: 5. Prepare Device Tree
         run: |
-          # التعديل على ملف الشجرة مباشرة في مسار الـ Workspace الحالي الأول
-          cd device/lenovo/tb7104
+          # التعديل على الملف في مسار الجيت هاب مباشرة
+          cd $GITHUB_WORKSPACE/device/lenovo/tb7104
           sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
           sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
           echo "TARGET_STRIP := strip" >> BoardConfig.mk
           
-          # إنشاء المسار جوه سورس أومني ونقل الشجرة الجاهزة والمعدلة هناك
+          # نقل الشجرة المظبوطة لمجلد البناء
           mkdir -p ~/twrp_build/device/lenovo
-          rm -rf ~/twrp_build/device/lenovo/tb7104
-          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104 ~/twrp_build/device/lenovo/tb7104
+          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104 ~/twrp_build/device/lenovo/
           echo "Device tree prepared and copied successfully!"
 
       - name: 6. Build Recovery Image

@@ -42,23 +42,23 @@ jobs:
 
       - name: 5. Prepare Device Tree
         run: |
-          # التعديل على الملف في مسار الجيت هاب مباشرة
+          # التعديل على ملف BoardConfig.mk مباشرة في مسار الشجرة الحالي
           cd $GITHUB_WORKSPACE/device/lenovo/tb7104
           sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
           sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
           echo "TARGET_STRIP := strip" >> BoardConfig.mk
           
-          # نقل الشجرة المظبوطة لمجلد البناء
-          mkdir -p ~/twrp_build/device/lenovo
-          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104 ~/twrp_build/device/lenovo/
-          echo "Device tree prepared and copied successfully!"
+          # نسخ الشجرة بالكامل لمجلد البناء الخاص بسورس أومني
+          mkdir -p ~/twrp_build/device/lenovo/tb7104
+          cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/twrp_build/device/lenovo/tb7104/
+          echo "Device tree files copied successfully!"
 
       - name: 6. Build Recovery Image
         run: |
           cd ~/twrp_build
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch omni_tb7104-eng || lunch twrp_tb7104-eng
+          lunch omni_tb7104-eng
           make clean
           make recoveryimage -j$(nproc)
 

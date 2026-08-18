@@ -69,4 +69,4 @@ jobs:
         with:
           name: OrangeFox-TB7104-Recovery
           path: /home/runner/fox_8.1/out/target/product/tb7104/recovery.img
-EOF
+          

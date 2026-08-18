@@ -2,7 +2,6 @@ name: New Build System
 
 on:
   workflow_dispatch:
-    
 
 jobs:
   build:
@@ -36,36 +35,44 @@ jobs:
 
       - name: 4. Initialize and Sync Minimal Manifest
         run: |
-         mkdir -p ~/twrp_build
-         cd ~/twrp_build
-         git config --global user.name "ahmedrba15-cell"
-         git config --global user.email "ahmed@example.com"
-         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
-         repo sync -c --no-tags --no-clone-bundle -j$(nproc)
+          mkdir -p ~/twrp_build
+          cd ~/twrp_build
+          git config --global user.name "ahmedrba15-cell"
+          git config --global user.email "ahmed@example.com"
+          repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-8.1
+          repo sync -c --no-tags --no-clone-bundle -j$(nproc)
 
       - name: 5. Prepare Device Tree
         run: |
-         mkdir -p ~/twrp_build/device/lenovo/tb7104
-         cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104/* ~/twrp_build/device/lenovo/tb7104/
-        
-         # تعديلات BoardConfig.mk (LZMA وحجم الـ Partition)
-         cd ~/twrp_build/device/lenovo/tb7104
-         sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
-         sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
-         echo "TARGET_STRIP := strip" >> BoardConfig.mk
+          # إنشاء مسار الجهاز داخل سورس أومني
+          mkdir -p ~/twrp_build/device/lenovo/tb7104
+          
+          # نسخ محتويات الشجرة مباشرة للتأكد من وصول الملفات
+          cp -r $GITHUB_WORKSPACE/* ~/twrp_build/device/lenovo/tb7104/
+          
+          # التأكد من وجود الملف والتعديل عليه بأمان
+          cd ~/twrp_build/device/lenovo/tb7104
+          if [ -f BoardConfig.mk ]; then
+            sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
+            sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
+            echo "TARGET_STRIP := strip" >> BoardConfig.mk
+          else
+            echo "Error: BoardConfig.mk not found!"
+            exit 1
+          fi
 
       - name: 6. Build Recovery Image
         run: |
-         cd ~/twrp_build
-         export ALLOW_MISSING_DEPENDENCIES=true
-         source build/envsetup.sh
-         lunch omni_tb7104-eng || lunch twrp_tb7104-eng
-         make clean
-         make recoveryimage -j$(nproc)
-        
+          cd ~/twrp_build
+          export ALLOW_MISSING_DEPENDENCIES=true
+          source build/envsetup.sh
+          lunch omni_tb7104-eng || lunch twrp_tb7104-eng
+          make clean
+          make recoveryimage -j$(nproc)
+
       - name: 7. Upload Recovery Artifact
         uses: actions/upload-artifact@v4
         with:
-         name: TWRP-TB7104-Recovery
-         path: /home/runner/twrp_build/out/target/product/tb7104/recovery.img
-        
+          name: TWRP-TB7104-Recovery
+          path: /home/runner/twrp_build/out/target/product/tb7104/recovery.img
+          

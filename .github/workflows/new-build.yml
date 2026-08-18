@@ -44,24 +44,17 @@ jobs:
 
       - name: 5. Prepare Device Tree
         run: |
-          # إنشاء مسار الجهاز داخل سورس أومني بشكل صحيح
-          mkdir -p ~/twrp_build/device/lenovo
+          # التعديل على ملف الشجرة مباشرة في مسار الـ Workspace الحالي الأول
+          cd device/lenovo/tb7104
+          sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
+          sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
+          echo "TARGET_STRIP := strip" >> BoardConfig.mk
           
-          # إزالة أي مجلد قديم ونسخ الشجرة بالمسار المضبوط
+          # إنشاء المسار جوه سورس أومني ونقل الشجرة الجاهزة والمعدلة هناك
+          mkdir -p ~/twrp_build/device/lenovo
           rm -rf ~/twrp_build/device/lenovo/tb7104
           cp -r $GITHUB_WORKSPACE/device/lenovo/tb7104 ~/twrp_build/device/lenovo/tb7104
-          
-          # التأكد من وجود الملف والتعديل عليه بأمان
-          cd ~/twrp_build/device/lenovo/tb7104
-          if [ -f BoardConfig.mk ]; then
-            sed -i 's/BOARD_RAMDISK_COMPRESSION := .*/BOARD_RAMDISK_COMPRESSION := lzma/' BoardConfig.mk
-            sed -i 's/BOARD_RECOVERYIMAGE_PARTITION_SIZE := .*/BOARD_RECOVERYIMAGE_PARTITION_SIZE := 17301504/' BoardConfig.mk
-            echo "TARGET_STRIP := strip" >> BoardConfig.mk
-            echo "BoardConfig.mk modified successfully!"
-          else
-            echo "Error: BoardConfig.mk not found!"
-            exit 1
-          fi
+          echo "Device tree prepared and copied successfully!"
 
       - name: 6. Build Recovery Image
         run: |
